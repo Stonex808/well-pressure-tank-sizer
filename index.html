@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Well Pressure Tank Sizer: stop short-cycling your pump</title>
+<meta name="description" content="Free tool: size a well bladder tank from pump GPM and pressure switch settings using Amtrol Well-X-Trol published drawdowns. Includes precharge advice.">
+<style>
+:root{--bg:#0f1720;--panel:#182230;--card:#1e2c3a;--ink:#e8eef4;--muted:#9bb0c3;--line:#2c4052;--accent:#3db8e8;--accent2:#7dd3a7;--warn:#f0a060;--ok:#7dd3a7}
+*{box-sizing:border-box}body{margin:0;font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:var(--ink);background:var(--bg)}
+header{background:linear-gradient(135deg,#123049,#1a3a52 50%,#0f2838);border-bottom:1px solid var(--line);padding:28px 16px}
+header .wrap,main,footer .wrap{max-width:880px;margin:0 auto}
+header h1{margin:0;font-size:1.55rem;font-weight:700;letter-spacing:-.02em}
+header p{margin:8px 0 0;color:var(--muted);max-width:46rem}
+main{padding:16px}
+.disclosure{background:#2a2418;border:1px solid #6a5630;color:#f3e2b0;padding:10px 12px;border-radius:8px;font-size:.9rem;margin:0 0 14px}
+.grid{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h2{margin:0 0 12px;font-size:1.05rem;color:var(--accent)}
+label{display:block;font-size:.85rem;color:var(--muted);margin:10px 0 4px}
+input,select{width:100%;padding:11px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-size:1rem}
+input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px}
+.custom{display:none;gap:10px;grid-template-columns:1fr 1fr;margin-top:4px}
+.custom.on{display:grid}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:4px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.stat span{display:block;font-size:.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.stat b{display:block;font-size:1.45rem;margin-top:4px;color:var(--accent2)}
+.rec{margin-top:14px;padding:14px;border-radius:10px;background:#143047;border:1px solid #2d6a8a}
+.rec strong{color:var(--accent)}
+.warn{color:var(--warn)}.ok{color:var(--ok)}
+.note{font-size:.88rem;color:var(--muted);margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:8px}
+th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left}
+th{color:var(--muted);font-weight:600}tr.hit{background:#1a3d52}
+.buy a{display:block;padding:11px 12px;margin:8px 0;border-radius:8px;background:var(--panel);border:1px solid var(--line);color:var(--ink);text-decoration:none}
+.buy a:hover,.buy a.best{border-color:var(--accent);background:#16384c}
+.buy a.best::after{content:" ← matches your size";color:var(--accent2);font-size:.85rem}
+footer{padding:20px 16px 36px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);margin-top:18px}
+.how{font-size:.92rem;color:var(--muted)}
+.how ol{padding-left:1.2rem;margin:8px 0}
+</style>
+</head>
+<body>
+<header>
+<div class="wrap">
+<h1>Well Pressure Tank Sizer</h1>
+<p>Stop short-cycling. Pick a bladder tank whose published drawdown covers at least one minute of your pump’s flow.</p>
+</div>
+</header>
+<main>
+<div class="disclosure"><strong>Affiliate disclosure:</strong> As an Amazon Associate I earn from qualifying purchases. Links below use my Amazon Associates tag. Estimates only — not professional well-system advice.</div>
+
+<div class="grid">
+<section class="card">
+<h2>Your system</h2>
+<label for="gpm">Pump flow (GPM)</label>
+<input id="gpm" type="number" min="1" max="80" step="0.5" value="10" inputmode="decimal">
+
+<label for="minutes">Minimum pump run time (minutes)</label>
+<input id="minutes" type="number" min="0.5" max="5" step="0.5" value="1" inputmode="decimal">
+
+<label for="switch">Pressure switch</label>
+<select id="switch">
+<option value="20/40">20 / 40 psi</option>
+<option value="30/50" selected>30 / 50 psi</option>
+<option value="40/60">40 / 60 psi</option>
+<option value="50/70">50 / 70 psi</option>
+<option value="custom">Custom cut-in / cut-out</option>
+</select>
+<div class="custom" id="customBox">
+<div>
+<label for="cutIn">Cut-in (psi)</label>
+<input id="cutIn" type="number" value="40" min="10" max="80">
+</div>
+<div>
+<label for="cutOut">Cut-out (psi)</label>
+<input id="cutOut" type="number" value="60" min="20" max="100">
+</div>
+</div>
+
+<label for="current">Current tank size (gallons, optional)</label>
+<input id="current" type="number" min="0" max="500" step="1" placeholder="e.g. 20" inputmode="numeric">
+</section>
+
+<section class="card">
+<h2>Recommendation</h2>
+<div class="stats">
+<div class="stat"><span>Required drawdown</span><b id="need">—</b></div>
+<div class="stat"><span>Suggested tank</span><b id="tank">—</b></div>
+<div class="stat"><span>Model (Amtrol ref.)</span><b id="model">—</b></div>
+<div class="stat"><span>Precharge air</span><b id="pre">—</b></div>
+</div>
+<div class="rec" id="recBox">Enter your pump GPM to size a tank.</div>
+<p class="note" id="warnBox"></p>
+</section>
+</div>
+
+<section class="card" style="margin-top:14px">
+<h2>How this works</h2>
+<div class="how">
+<ol>
+<li>Required drawdown (gal) = pump GPM × minimum run minutes. Aim for ≥1 minute on small pumps; 2 minutes is safer on larger pumps.</li>
+<li>We pick the smallest Amtrol Well-X-Trol size whose <em>published</em> drawdown at your switch setting meets that number (MC7025 card, Mar 2026).</li>
+<li>Set empty-tank air charge to cut-in minus 2 psi before connecting water.</li>
+</ol>
+<p>Other brands differ. Always confirm against the tank’s own drawdown chart and a licensed well tech.</p>
+</div>
+</section>
+
+<section class="card" style="margin-top:14px">
+<h2>Amtrol Well-X-Trol drawdown reference</h2>
+<div style="overflow-x:auto">
+<table id="chart">
+<thead><tr><th>Model</th><th>Vol</th><th>30/50</th><th>40/60</th><th>50/70</th></tr></thead>
+<tbody></tbody>
+</table>
+</div>
+<p class="note">Source: Amtrol Well-X-Trol specifications card MC7025 (03/26). 20/40 drawdown is estimated (~15% above 30/50) because that switch is not on the card.</p>
+</section>
+
+<section class="card buy" style="margin-top:14px">
+<h2>Shop tanks (Amazon)</h2>
+<p class="note" style="margin-top:0">Search links open Amazon with tag <code>wellpumpplann-20</code>. Compare models, fittings, and shipping before you buy.</p>
+<a id="buy20" href="https://www.amazon.com/s?k=well+pressure+tank+20+gallon&tag=wellpumpplann-20" rel="nofollow sponsored">20-gallon well pressure tanks</a>
+<a id="buy32" href="https://www.amazon.com/s?k=well+pressure+tank+32+gallon&tag=wellpumpplann-20" rel="nofollow sponsored">32-gallon well pressure tanks</a>
+<a id="buy44" href="https://www.amazon.com/s?k=well+pressure+tank+44+gallon&tag=wellpumpplann-20" rel="nofollow sponsored">44-gallon well pressure tanks</a>
+<a id="buy62" href="https://www.amazon.com/s?k=well+pressure+tank+62+gallon&tag=wellpumpplann-20" rel="nofollow sponsored">62-gallon well pressure tanks</a>
+<a id="buy86" href="https://www.amazon.com/s?k=well+pressure+tank+86+gallon&tag=wellpumpplann-20" rel="nofollow sponsored">86-gallon well pressure tanks</a>
+<a id="buyGauge" href="https://www.amazon.com/s?k=well+pressure+tank+gauge+air+valve+precharge&tag=wellpumpplann-20" rel="nofollow sponsored">Tank gauge / air valve / precharge kit</a>
+</section>
+</main>
+<footer><div class="wrap">
+<p>Free educational estimator. Not a substitute for manufacturer charts or a licensed well contractor. Drawdowns assume a healthy bladder tank with correct precharge. A waterlogged tank acts small no matter the label.</p>
+<p>© 2026 Well Pressure Tank Sizer · Affiliate disclosure above</p>
+</div></footer>
+<script>
+const TANKS=[
+ {model:'WX-202',vol:20,d:{'30/50':6.2,'40/60':5.4,'50/70':4.7}},
+ {model:'WX-202XL',vol:26,d:{'30/50':8.0,'40/60':7.0,'50/70':6.1}},
+ {model:'WX-203',vol:32,d:{'30/50':9.9,'40/60':8.6,'50/70':7.6}},
+ {model:'WX-205',vol:34,d:{'30/50':10.5,'40/60':9.1,'50/70':8.0}},
+ {model:'WX-250',vol:44,d:{'30/50':13.6,'40/60':11.8,'50/70':10.4}},
+ {model:'WX-251',vol:62,d:{'30/50':19.2,'40/60':16.6,'50/70':14.6}},
+ {model:'WX-255',vol:81,d:{'30/50':25.0,'40/60':21.7,'50/70':19.1}},
+ {model:'WX-302',vol:86,d:{'30/50':26.6,'40/60':23.0,'50/70':20.3}},
+ {model:'WX-350',vol:119,d:{'30/50':36.8,'40/60':31.9,'50/70':28.1}}
+];
+function drawdown(t, key){
+  if(key==='20/40') return +(t.d['30/50']*1.15).toFixed(1);
+  if(t.d[key]!=null) return t.d[key];
+  // custom: interpolate by differential span toward nearest
+  return t.d['40/60'];
+}
+function switchKey(){
+  const v=document.getElementById('switch').value;
+  if(v!=='custom') return v;
+  const a=+document.getElementById('cutIn').value, b=+document.getElementById('cutOut').value;
+  const pairs=[[20,40,'20/40'],[30,50,'30/50'],[40,60,'40/60'],[50,70,'50/70']];
+  let best='40/60', dist=1e9;
+  for(const [x,y,k] of pairs){const d=Math.abs(x-a)+Math.abs(y-b); if(d<dist){dist=d;best=k;}}
+  return best;
+}
+function cutIn(){
+  const v=document.getElementById('switch').value;
+  if(v==='custom') return +document.getElementById('cutIn').value||40;
+  return +v.split('/')[0];
+}
+function renderChart(selModel){
+  const tb=document.querySelector('#chart tbody');
+  tb.innerHTML='';
+  for(const t of TANKS){
+    const tr=document.createElement('tr');
+    if(t.model===selModel) tr.className='hit';
+    tr.innerHTML=`<td>${t.model}</td><td>${t.vol}</td><td>${t.d['30/50']}</td><td>${t.d['40/60']}</td><td>${t.d['50/70']}</td>`;
+    tb.appendChild(tr);
+  }
+}
+function nearestBuy(vol){
+  const sizes=[20,32,44,62,86];
+  let best=sizes[0], d=1e9;
+  for(const s of sizes){const dd=Math.abs(s-vol); if(dd<d){d=dd;best=s;}}
+  return best;
+}
+function calc(){
+  document.getElementById('customBox').classList.toggle('on', document.getElementById('switch').value==='custom');
+  const gpm=+document.getElementById('gpm').value;
+  const mins=+document.getElementById('minutes').value;
+  const key=switchKey();
+  const need=gpm*mins;
+  document.getElementById('need').textContent=isFinite(need)?need.toFixed(1)+' gal':'—';
+  let pick=null;
+  for(const t of TANKS){
+    if(drawdown(t,key)+1e-9>=need){pick=t;break;}
+  }
+  const pre=Math.max(0, cutIn()-2);
+  document.getElementById('pre').textContent=pre+' psi';
+  const rec=document.getElementById('recBox');
+  const warn=document.getElementById('warnBox');
+  document.querySelectorAll('.buy a').forEach(a=>a.classList.remove('best'));
+  if(!gpm||!mins||need<=0){
+    document.getElementById('tank').textContent='—';
+    document.getElementById('model').textContent='—';
+    rec.textContent='Enter your pump GPM to size a tank.';
+    warn.textContent='';
+    renderChart(null);
+    return;
+  }
+  if(!pick){
+    document.getElementById('tank').textContent='119+';
+    document.getElementById('model').textContent='multi-tank';
+    rec.innerHTML=`Need <strong>${need.toFixed(1)} gal</strong> drawdown at ${key}. Even a WX-350 (~${drawdown(TANKS[TANKS.length-1],key)} gal) is short — use parallel tanks or lower GPM / longer accepted runtime.`;
+    warn.innerHTML='<span class="warn">Out of single-tank range for this flow.</span>';
+    renderChart(null);
+    return;
+  }
+  document.getElementById('tank').textContent=pick.vol+' gal';
+  document.getElementById('model').textContent=pick.model;
+  const dd=drawdown(pick,key);
+  const estNote=key==='20/40'?' (20/40 drawdown estimated from 30/50)':'';
+  rec.innerHTML=`For <strong>${gpm} GPM</strong> × <strong>${mins} min</strong> you need <strong>${need.toFixed(1)} gal</strong> drawdown. <strong>${pick.model}</strong> (${pick.vol} gal) gives about <strong>${dd} gal</strong> at ${key}${estNote}. Set empty-tank precharge to <strong>${pre} psi</strong>.`;
+  const cur=+document.getElementById('current').value;
+  if(cur>0){
+    // approximate current drawdown by nearest volume row
+    let near=TANKS[0];
+    for(const t of TANKS){if(Math.abs(t.vol-cur)<Math.abs(near.vol-cur)) near=t;}
+    const curDD=drawdown(near,key)*(cur/near.vol);
+    if(curDD+0.05<need) warn.innerHTML=`<span class="warn">Your ~${cur} gal tank looks undersized (~${curDD.toFixed(1)} gal drawdown vs ${need.toFixed(1)} needed). Expect short cycling.</span>`;
+    else warn.innerHTML=`<span class="ok">A healthy ~${cur} gal tank is in the ballpark for this load (~${curDD.toFixed(1)} gal estimated drawdown).</span>`;
+  } else warn.textContent='';
+  const buy=nearestBuy(pick.vol);
+  const el=document.getElementById('buy'+buy);
+  if(el) el.classList.add('best');
+  renderChart(pick.model);
+}
+['gpm','minutes','switch','cutIn','cutOut','current'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',calc);
+  document.getElementById(id).addEventListener('change',calc);
+});
+calc();
+</script>
+</body>
+</html>
